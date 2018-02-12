@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title></title>
+
+	<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.6.5/angular.min.js"></script>
+</head>
+<body ng-app="myApp">
+<div ng-controller="myCtrl">
+
+<form name="form" novalidate ng-submit="callScript()">
+	<input type="text" name="name" ng-model="name">
+	<input type="file" file-model = "myFile">
+	<!-- <input type="file" file-model = "myFile2"> -->
+	<button type="submit">submit</button>
+</form>
+	
+</div>
+</body>
+</html>
+
+<script type="text/javascript">
+	var app = angular.module('myApp', []);
+
+
+	app.directive('fileModel', ['$parse', function ($parse) {
+		return {
+				restrict: 'A',
+				link: function(scope, element, attrs) {
+						var model = $parse(attrs.fileModel);
+						var modelSetter = model.assign;
+						console.log(scope);  
+						
+						element.bind('change', function(){
+								scope.$apply(function(){
+								modelSetter(scope, element[0].files[0]);
+								});
+						});
+				}
+		};
+	}]);
+  
+
+	app.controller("myCtrl", [ '$scope','$http', function($scope,$http){
+		$scope.form = {};
+		$scope.callScript = function(){      
+           // console.dir(file);
+           var fd = new FormData();
+           fd.append('file', $scope.myFile);
+           // fd.append('file2', $scope.myFile2);
+
+           fd.append('name', $scope.name);
+        
+           $http.post("script.php", fd, {
+              transformRequest: angular.identity,
+              headers: {'Content-Type': undefined},
+              data : {
+              	name : $scope.name
+              }
+           }).then(function(res){
+           		console.log(res.data);
+           },function(err){
+           		console.log(err);
+
+           });
+		}
+	}]);
+
+
+
+</script>
